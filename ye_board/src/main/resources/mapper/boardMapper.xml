@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- IBoardDao 전용 Mapper: 게시판관련 SQL -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.ye.dao.IBoardDao">
+	<select id="getBoardList" parameterType="int" resultType="board">
+		<![CDATA[
+			SELECT *
+			  FROM (
+					SELECT /*+INDEX_DESC(BOARD PK_B_NUM)*/ ROWNUM RN
+						 , (SELECT COUNT(*) FROM REPLY WHERE REPLY.R_BNUM = BOARD.B_NUM) RCNT
+					     , BOARD.*
+				  	 FROM BOARD 
+				 	WHERE ROWNUM<=#{pageNum}*10
+				 	ORDER BY (CASE WHEN BOARD.B_TYPE = 'A' THEN 1 ELSE 2 END), RN ) BLIST
+			WHERE RN>= #{pageNum}*10-9
+		]]>
+	</select>
+	
+	<insert id="boardWrite" parameterType="board">
+		INSERT INTO BOARD (B_NUM, B_TITLE, B_CONTENTS, B_WRITER, B_VIEWS, B_TYPE, B_PW, B_DATE)
+		VALUES (B_SEQ.NEXTVAL, #{b_title}, #{b_contents}, #{b_writer}, DEFAULT, #{b_type}, #{b_pw}, DEFAULT)
+	</insert>
+	
+	<select id="getContents" parameterType="int" resultType="board">
+		SELECT * FROM BOARD WHERE B_NUM = #{b_num}
+	</select>
+	
+	<update id="boardviewCnt" parameterType="int">
+		UPDATE BOARD SET B_VIEWS = B_VIEWS +1 WHERE B_NUM = #{num}
+	</update>
+	
+	<insert id="insertReply" parameterType="reply">
+		INSERT INTO REPLY (R_NUM, R_BNUM, R_CONTENTS, R_ID, R_DATE)
+		VALUES(R_SEQ.NEXTVAL, #{r_bnum}, #{r_contents}, #{r_id}, DEFAULT)
+	</insert>
+	
+	<select id="getReplyList" parameterType="int" resultType="reply">
+		SELECT * FROM RLIST WHERE R_BNUM = #{r_bnum}
+	</select>
+	
+	<delete id="deleteReply" parameterType="String">
+		DELETE FROM REPLY WHERE R_NUM = #{num} AND R_BNUM = #{Bnum}
+	</delete>
+
+	<update id="updateReply" parameterType="String">
+		UPDATE REPLY SET R_CONTENTS = #{r_contents} WHERE R_NUM =#{num} AND R_BNUM= #{bnum}
+	</update>
+	
+	<update id="modifyContent" parameterType="board">
+		UPDATE BOARD
+	       SET B_TITLE		= #{b_title}
+			 , B_CONTENTS	= #{b_contents}
+			 , B_DATE		= TO_CHAR(SYSDATE, 'YYYYMMDD')
+		WHERE B_NUM 		= #{b_num}
+	</update>
+	
+	<delete id="deleteReply2" parameterType="String">
+		DELETE FROM REPLY WHERE R_BNUM = #{bnum}
+	</delete>
+	
+	<delete id="deleteBoard" parameterType="String">
+		DELETE FROM BOARD WHERE B_NUM = #{bnum} 
+	</delete>
+	
+	<select id="boardSearch" parameterType="String" resultType="board">
+		SELECT (SELECT COUNT(*) FROM REPLY WHERE REPLY.R_BNUM = BOARD.B_NUM)RCNT, BOARD.* FROM BOARD 
+		<where>
+			<if test="choice.equals('b_title')">
+				B_TITLE LIKE '%' || #{search} || '%' 
+			</if>	
+			<if test="choice.equals('b_writer')">
+				B_WRITER LIKE '%' || #{search} || '%'
+			</if>
+		</where>
+		ORDER BY (CASE WHEN BOARD.B_TYPE = 'A' THEN 1 ELSE 2 END), B_NUM DESC
+	</select>
+	
+</mapper>

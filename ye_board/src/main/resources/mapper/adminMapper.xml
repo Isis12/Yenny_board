@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- IAdminDao 전용 Mapper: 게시판관련 SQL -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.spring.ye.dao.IAdminDao">
+	<select id="adminList" parameterType="String"  resultType="member">
+		SELECT ROWNUM RN, MLIST.* FROM MLIST WHERE DEL_YN = 'N'
+	</select>
+
+	<select id="WithdrawalList" parameterType="String" resultType="member">
+		SELECT ROWNUM RN, MLIST.* FROM MLIST WHERE DEL_YN = 'Y'
+	</select>
+	
+	<select id="getModalMemInfo" parameterType="String" resultType="member">
+		SELECT MEMDETINFO.* FROM MEMDETINFO WHERE M_ID = #{m_id}
+	</select>
+	
+	<update id="modifyMember" parameterType="member">
+		UPDATE MEMBER 
+		   SET M_PHONE 		= #{m_phone}
+		     , M_ADDR_NUM 	= #{m_addr_num}
+		     , M_ADDR		= #{m_addr}
+		     , M_ADDR_DET 	= #{m_addr_det}
+		     , M_POINT 		= #{m_point}
+		 WHERE M_ID 		= #{m_id}
+	</update>
+	
+	<update id="UpdateGrade" parameterType="member">
+		UPDATE MEMBER SET M_GCODE = #{code} WHERE M_ID = #{id}
+	</update>
+	
+	<update id="memSecession" parameterType="member">
+		UPDATE MEMBER SET DEL_YN = 'Y' WHERE M_ID = #{id}
+	</update>
+	
+	<delete id="removeReply" parameterType="String">
+		DELETE FROM REPLY WHERE R_ID = #{id}
+	</delete>
+	
+	<delete id="removeBoard" parameterType="String">
+		DELETE FROM BOARD WHERE B_WRITER = #{id}
+	</delete>
+	
+	<delete id="deleteMember" parameterType="String">
+		DELETE FROM MEMBER WHERE M_ID = #{id}
+	</delete>
+</mapper>
